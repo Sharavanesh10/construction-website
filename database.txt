@@ -1,0 +1,104 @@
+create database dreem_house;
+
+use dreem_house;
+CREATE TABLE house_owners (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    owner_name VARCHAR(100) NOT NULL,
+    contractor_name VARCHAR(100) NOT NULL,
+    building_address TEXT NOT NULL,
+    owner_mobile VARCHAR(15) NOT NULL,
+    email VARCHAR(45) NOT NULL UNIQUE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+use dreem_house;
+CREATE TABLE `contractors` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `company_name` varchar(100) NOT NULL,
+  `experience` int NOT NULL,
+  `approval_no` varchar(50) NOT NULL,
+  `company_address` text NOT NULL,
+  `milestone_project` text NOT NULL,
+  `mobile` varchar(15) NOT NULL,
+  `email` varchar(45) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email_UNIQUE` (`email`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `contractors_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+);
+
+use dreem_house;
+CREATE TABLE users (
+  id int NOT NULL AUTO_INCREMENT,
+  username varchar(50) NOT NULL,
+  password varchar(255) NOT NULL,
+  user_type enum('contractor','houseOwner') NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY username (username)
+);
+-- 1. Add the user_id column to the users table
+ALTER TABLE users
+ADD COLUMN user_id INT NULL;
+
+-- 2. Create a foreign key constraint on the user_id column
+ALTER TABLE users
+ADD CONSTRAINT fk_house_owner_user_id
+FOREIGN KEY (user_id) REFERENCES house_owners(id)
+ON DELETE SET NULL;
+
+
+use dreem_house;
+CREATE TABLE `projects` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_name` varchar(255) NOT NULL,
+  `building_area` varchar(255) NOT NULL,
+  `building_type` varchar(255) NOT NULL,
+  `client_name` varchar(255) NOT NULL,
+  `client_mobile` varchar(20) NOT NULL,
+  `client_email` varchar(255) NOT NULL,
+  `construction_address` varchar(255) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `drawing` mediumblob,
+  `contractor_id` int DEFAULT NULL,
+  `house_owner_id` int DEFAULT NULL,  -- Add house_owner_id column
+  `contractor_name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `contractor_id` (`contractor_id`),
+  KEY `house_owner_id` (`house_owner_id`), 
+  CONSTRAINT `projects_ibfk_1` FOREIGN KEY (`contractor_id`) REFERENCES `contractors` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `projects_ibfk_2` FOREIGN KEY (`house_owner_id`) REFERENCES `house_owners` (`id`) ON DELETE SET NULL  -- Foreign key constraint for house_owner_id
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+
+
+use dreem_house;
+CREATE TABLE `progress_sheets` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `progress_date` date NOT NULL,
+  `site_engineer` varchar(255) NOT NULL,
+  `type_of_work` enum('excavation','concreting','reinforcement','layering','plastering','painting','others') NOT NULL,
+  `number_of_labourers` int NOT NULL,
+  `male_workers` int NOT NULL,
+  `female_workers` int NOT NULL,
+  `material_arrival` enum('yes','no') NOT NULL,
+  `material_type` varchar(255) DEFAULT NULL,
+  `upload_progress` mediumblob,
+  `other_info` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `project_id` int DEFAULT NULL,
+  `house_owner_id` int DEFAULT NULL,
+  `project_name` varchar(45) DEFAULT NULL,
+  `contractor_name` varchar(45) DEFAULT NULL,
+  `user_query` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `project_id` (`project_id`),
+  KEY `house_owner_id` (`house_owner_id`),
+  CONSTRAINT `progress_sheets_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `progress_sheets_ibfk_2` FOREIGN KEY (`house_owner_id`) REFERENCES `house_owners` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
